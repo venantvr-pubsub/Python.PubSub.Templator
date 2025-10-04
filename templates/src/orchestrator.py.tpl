@@ -29,7 +29,7 @@ class HelloWorldOrchestrator(OrchestratorBase):
     def start_workflow(self) -> None:
         """Démarre le processus en envoyant le premier événement."""
         logger.info("Workflow démarré. Envoi de l'événement 'StartProducing'.")
-        start_event = StartProducing()
+        start_event = StartProducing(session_guid=self.session_guid)
         self.service_bus.publish(StartProducing.__name__, start_event, self.__class__.__name__)
 
     def _handle_world_message(self, event: WorldMessage):

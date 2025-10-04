@@ -4,7 +4,7 @@ from typing import Optional
 from pubsub import QueueWorkerThread, ServiceBus
 
 from ..logger import logger
-from ..events import StartProducing, HelloMessage, WorldMessage
+from ..events import StartProducing, HelloMessage
 
 class ProducerAgent(QueueWorkerThread):
     """Agent qui produit le message 'hello'."""
@@ -19,24 +19,14 @@ class ProducerAgent(QueueWorkerThread):
     def _handle_start_producing(self, event: StartProducing):
         """Handler pour l'événement StartProducing. Ajoute la tâche à la queue."""
         logger.info(f"'{self.name}' a reçu le signal de départ. Ajout de la tâche de production.")
-        # Délègue le travail à son propre thread via la work_queue
-        self.add_task("_produce_hello_message")
+        # On passe l'événement complet à la tâche pour pouvoir récupérer le GUID
+        self.add_task("_produce_hello_message", event)
 
-    def _produce_hello_message(self):
+    def _produce_hello_message(self, start_event: StartProducing):
         """La logique métier de l'agent, exécutée dans son thread."""
-        from {{project_name_py}}.orchestrator import HelloWorldOrchestrator
 
-        # On cherche l'instance de l'orchestrateur parmi les abonnés pour récupérer le session_guid
-        orchestrator_instance = next(
-            (s.handler.__self__ for s in self.service_bus.get_subscribers(WorldMessage.__name__) if isinstance(s.handler.__self__, HelloWorldOrchestrator)),
-            None
-        )
-
-        if orchestrator_instance is None or not hasattr(orchestrator_instance, 'session_guid'):
-            logger.error("Impossible de trouver l'instance de l'orchestrateur ou son GUID de session.")
-            return
-
-        session_guid = orchestrator_instance.session_guid
+        # On récupère le GUID directement de l'événement de départ. C'est plus simple.
+        session_guid = start_event.session_guid
 
         logger.info(f"Envoi du message 'hello' avec le GUID: {session_guid}")
         hello_event = HelloMessage(text="hello", session_guid=session_guid)

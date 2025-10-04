@@ -8,6 +8,7 @@ class FrozenBaseModel(BaseModel):
 class StartProducing(FrozenBaseModel):
     """Événement pour déclencher le début du processus par le Producer."""
     message: str = Field(default="Go!", description="Message de déclenchement.")
+    session_guid: str = Field(description="Le GUID de la session à utiliser.")
 
 
 class HelloMessage(FrozenBaseModel):
