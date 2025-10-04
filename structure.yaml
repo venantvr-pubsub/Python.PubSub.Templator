@@ -1,0 +1,39 @@
+# Fichier de configuration pour la structure du projet généré
+
+# Liste des répertoires à créer.
+# Les placeholders comme {{project_name_py}} seront remplacés.
+directories:
+  - "{{project_name_py}}"
+  - "{{project_name_py}}/agents"
+  - "tests"
+
+# Dictionnaire des fichiers à créer.
+# La clé est le chemin de destination (avec placeholders).
+# La valeur est le chemin du fichier gabarit dans le dossier 'templates/'.
+# Un gabarit spécial '_empty.tpl' est utilisé pour les fichiers vides.
+files:
+  "Makefile": "Makefile.tpl"
+  "README.md": "README.md.tpl"
+  "docker-compose.yml": "docker-compose.yml.tpl"
+  ".gitignore": "_gitignore.tpl" # Renommé pour éviter que git l'ignore lui-même
+  ".env.example": "env.example.tpl"
+  ".pre-commit-config.yaml": "pre-commit-config.yaml.tpl"
+  "requirements.txt": "requirements.txt.tpl"
+  "requirements-dev.txt": "requirements-dev.txt.tpl"
+
+  # Fichiers du paquet source
+  "{{project_name_py}}/__init__.py": "_empty.tpl"
+  "{{project_name_py}}/main.py": "src/main.py.tpl"
+  "{{project_name_py}}/logger.py": "src/logger.py.tpl"
+  "{{project_name_py}}/events.py": "src/events.py.tpl"
+  "{{project_name_py}}/orchestrator.py": "src/orchestrator.py.tpl"
+
+  # Fichiers des agents
+  "{{project_name_py}}/agents/__init__.py": "_empty.tpl"
+  "{{project_name_py}}/agents/producer_agent.py": "src/agents/producer_agent.py.tpl"
+  "{{project_name_py}}/agents/consumer_agent.py": "src/agents/consumer_agent.py.tpl"
+
+  # Fichiers de test
+  "tests/__init__.py": "_empty.tpl"
+  "tests/todo.txt": "_empty.tpl"
+  "tests/test_placeholder.py": "tests/test_placeholder.py.tpl"
