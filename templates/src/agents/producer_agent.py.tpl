@@ -4,32 +4,36 @@ from typing import Optional
 from pubsub import QueueWorkerThread, ServiceBus
 
 from ..logger import logger
-from ..events import StartProducing, HelloMessage
+from ..events import ConfigurationProvided, StartProducing, HelloMessage
+
 
 class ProducerAgent(QueueWorkerThread):
-    """Agent qui produit le message 'hello'."""
+    """Agent qui produit le message 'hello' après avoir reçu le signal de départ."""
 
-    def __init__(self, service_bus: Optional[ServiceBus] = None):
-        super().__init__(service_bus=service_bus, name="ProducerAgent")
+    def __init__(self, service_bus: Optional[ServiceBus] = None, name="ProducerAgent"):
+        super().__init__(service_bus=service_bus, name=name)
+        self.session_guid: Optional[str] = None
 
     def setup_event_subscriptions(self) -> None:
-        """S'abonne à l'événement qui déclenche son action."""
+        """S'abonne aux événements de configuration et de déclenchement."""
+        self.service_bus.subscribe(ConfigurationProvided.__name__, self._handle_configuration)
         self.service_bus.subscribe(StartProducing.__name__, self._handle_start_producing)
 
+    def _handle_configuration(self, event: ConfigurationProvided):
+        """Stocke le GUID de session reçu via l'événement de configuration."""
+        self.session_guid = event.session_guid
+        logger.info(f"'{self.name}' a reçu la configuration pour la session {self.session_guid}")
+
     def _handle_start_producing(self, event: StartProducing):
-        """Handler pour l'événement StartProducing. Ajoute la tâche à la queue."""
-        logger.info(f"'{self.name}' a reçu le signal de départ. Ajout de la tâche de production.")
-        # On passe l'événement complet à la tâche pour pouvoir récupérer le GUID
-        self.add_task("_produce_hello_message", event)
+        """Ajoute la tâche de production à la file d'attente lors du déclenchement."""
+        self.add_task("_produce_hello_message")
 
-    def _produce_hello_message(self, start_event: StartProducing):
-        """La logique métier de l'agent, exécutée dans son thread."""
+    def _produce_hello_message(self):
+        """Crée et publie le message 'hello' en utilisant le GUID de session stocké."""
+        if not self.session_guid:
+            logger.warning(f"'{self.name}' a reçu un signal de départ mais n'a pas de session_guid.")
+            return
 
-        # On récupère le GUID directement de l'événement de départ. C'est plus simple.
-        session_guid = start_event.session_guid
-
-        logger.info(f"Envoi du message 'hello' avec le GUID: {session_guid}")
-        hello_event = HelloMessage(text="hello", session_guid=session_guid)
-
-        if self.service_bus:
-            self.service_bus.publish(HelloMessage.__name__, hello_event, self.__class__.__name__)
+        logger.info(f"'{self.name}' envoie 'hello' pour la session {self.session_guid}")
+        hello_event = HelloMessage()
+        self.service_bus.publish(HelloMessage.__name__, hello_event, self.__class__.__name__)

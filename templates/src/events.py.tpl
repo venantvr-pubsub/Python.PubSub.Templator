@@ -1,23 +1,25 @@
 from pydantic import BaseModel, Field
 
-# Utilisation d'une classe de base pour la configuration commune (immutabilité)
 class FrozenBaseModel(BaseModel):
     model_config = {'frozen': True}
 
 
+class ConfigurationProvided(FrozenBaseModel):
+    """Événement distribué au démarrage avec le contexte de la session."""
+    session_guid: str = Field(description="Identifiant unique pour la session.")
+
+
 class StartProducing(FrozenBaseModel):
-    """Événement pour déclencher le début du processus par le Producer."""
-    message: str = Field(default="Go!", description="Message de déclenchement.")
-    session_guid: str = Field(description="Le GUID de la session à utiliser.")
+    """Événement qui déclenche le début du processus."""
+    # Champ booléen ajouté pour éviter un payload vide.
+    payload: bool = Field(default=True, description="Champ de compatibilité.")
 
 
 class HelloMessage(FrozenBaseModel):
-    """Message envoyé par le ProducerAgent."""
-    text: str = Field(description="Le contenu du message 'hello'.")
-    session_guid: str = Field(description="Identifiant unique de la session.")
+    """Message 'hello'."""
+    text: str = Field(default="hello")
 
 
 class WorldMessage(FrozenBaseModel):
-    """Message envoyé par le ConsumerAgent en réponse."""
-    response: str = Field(description="La réponse 'world'.")
-    original_guid: str = Field(description="GUID du message original pour le suivi.")
+    """Message 'world' en réponse."""
+    response: str = Field(default="world")
