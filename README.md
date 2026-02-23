@@ -4,10 +4,7 @@ Project skeleton generator for pub/sub consumer applications. Uses YAML-driven c
 
 ## Stack
 
-- Python
-- Smarty templates (`.tpl`)
-- YAML configuration
-
+[![Stack](https://skillicons.dev/icons?i=py,php&theme=dark)](https://skillicons.dev)
 ## Structure
 
 - `bootstrap.py` -- Entry point for project generation
